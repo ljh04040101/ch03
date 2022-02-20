@@ -6,15 +6,6 @@ public class WebController {
 
     @RequestMapping("/")
     public String index(String name){
-            int  j=1;
-        int  j=1;
-        int  j=1;
-        int  j=1;
-        int  j=1;
-        int  j=1;
-        int  j=1;
-
-
 
         return "index";
     }
