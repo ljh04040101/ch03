@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!-- Properties文件读取配置，base的properties -->
+    <context:property-placeholder location="classpath:database.properties" />
+
+    <!--    数据源-->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
+          destroy-method="close" scope="singleton">
+        <property name="url" value="${url}"/>
+        <property name="driverClassName" value="${driver}"/>
+        <property name="username" value="${user}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+    <!--    会话工厂-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+    </bean>
+
+    <!--    扫描基包下所有 Mapper 接口，生成实现类对象-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.k1051.mapper"/>
+    </bean>
+
+    <!-- 事务管理，将数据源注入 -->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+<!--    定义事务增强-->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="get*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="find*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="search*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="query*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="login*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="register*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="lend*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="return*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="insert*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="remove*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="modify*" propagation="REQUIRED" rollback-for="java.sql.SQLException" />
+            <tx:method name="*" propagation="REQUIRED" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+<!--    将事务增强和切面绑定在一起-->
+    <aop:config>
+        <aop:pointcut expression="execution(* com.k1051.service..*.*(..))"
+                      id="serviceMethod" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod" />
+    </aop:config>
+</beans>
